@@ -115,6 +115,9 @@ def run_search(index_path, file_path):
                 r, tokens = get_representation_nltk(query, stemmer, index, doc_ids)
             elif 'spacy' in index_path.stem:
                 r, tokens = get_representation_spacy(query, nlp, index, doc_ids)
+            else:
+                print("No valid file found")
+                sys.exit()
             res = run_query(r)
             print("Doc_ID results:")
             pp.pprint(res)

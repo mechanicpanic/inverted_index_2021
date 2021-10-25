@@ -4,7 +4,7 @@ import pickle
 import sys
 import spacy
 from nltk.stem import PorterStemmer
-from nltk.tokenize import TweetTokenizer, sent_tokenize
+from nltk.tokenize import TweetTokenizer
 from pathlib import Path
 
 
@@ -14,6 +14,7 @@ def get_files(path):
         if x.is_file():
             file_list.append(x)
     return file_list
+
 
 def token_iterator_nltk(files):
     tokenizer = TweetTokenizer()
@@ -43,23 +44,25 @@ def token_iterator_spacy(files):
             for doc in docs:
                 for token in doc:
                     if token.is_alpha:  # Easy way to check for URLs, numbers, etc.
-                        yield doc_num, token.lemma_  # Lemmatized form: more correct from the viewpoint of natural language
+                        yield doc_num, token.lemma_  # Lemmatized form: more correct from the viewpoint of natural
+                        # language
 
 
-def select_iterator(iterator_name,files):
+def select_iterator(iterator_name, files):
     if iterator_name == "nltk":
         return token_iterator_nltk(files)
     elif iterator_name == "spacy":
         return token_iterator_spacy(files)
 
+
 def spimi(files, iterator_name, memory=1000):
-    block_dir = Path.joinpath(Path.cwd(), 'blocks')
-    Path(block_dir).mkdir(exist_ok=True)
+    blocks = Path.joinpath(Path.cwd(), 'blocks')
+    Path(blocks).mkdir(exist_ok=True)
     memory_used = 0
     index = 0
     block_dict = {}
 
-    for doc_num, token in select_iterator(iterator_name,files):
+    for doc_num, token in select_iterator(iterator_name, files):
         print(doc_num)
         memory_used += sys.getsizeof(token)
         if token not in block_dict.keys():
@@ -68,15 +71,16 @@ def spimi(files, iterator_name, memory=1000):
             block_dict[token][doc_num] = 0
         block_dict[token][doc_num] += 1
         if memory_used > memory:
-            with open(Path.joinpath(block_dir, str(index)), "wb") as f:
+            with open(Path.joinpath(blocks, str(index)), "wb") as f:
                 pickle.dump(dict(sorted(block_dict.items())), f)
             index += 1
             block_dict = {}
             memory_used = 0
     if len(block_dict) > 0:
-        with open(Path.joinpath(block_dir, str(index)), "wb") as f:
+        with open(Path.joinpath(blocks, str(index)), "wb") as f:
             pickle.dump(dict(sorted(block_dict.items())), f)
-    return block_dir
+    return blocks
+
 
 def merge_dicts(dict1, dict2):
     for key, value in dict2.items():
@@ -86,9 +90,9 @@ def merge_dicts(dict1, dict2):
             dict1[key] = value
     return dict(sorted(dict1.items()))
 
-def merge_blocks(block_dir,lib):
+
+def merge_blocks(block_dir, lib):
     blocks = get_files(block_dir)
-    output = {}
     f1 = blocks.pop()
     with open(f1, 'rb') as f:
         dict1 = pickle.load(f)
@@ -98,10 +102,10 @@ def merge_blocks(block_dir,lib):
             dict2 = pickle.load(f)
         for key in dict2.keys():
             if key in dict1.keys():
-                dict1[key] = merge_dicts(dict1[key],dict2[key])
+                dict1[key] = merge_dicts(dict1[key], dict2[key])
             else:
                 dict1[key] = dict2[key]
-    with open(lib+"_index.pkl", "wb") as f:
+    with open(lib + "_index.pkl", "wb") as f:
         pickle.dump(dict1, f)
 
 
@@ -112,10 +116,8 @@ if __name__ == "__main__":
                         help='Memory threshold')
     parser.add_argument('lib', type=str,
                         help='Whether the text will be lemmatized with spacy (slower) or stemmed with nltk (faster)')
-    dataset_path = Path.joinpath(Path.cwd(),'news_dataset')
+    dataset_path = Path.joinpath(Path.cwd(), 'news_dataset')
     args = parser.parse_args()
     if dataset_path.is_dir():
         block_dir = spimi(get_files(dataset_path), args.lib, args.memory * 1024)
-        merge_blocks(block_dir)
-
-
+        merge_blocks(block_dir,args.lib)
