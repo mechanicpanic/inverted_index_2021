@@ -152,6 +152,6 @@ if __name__ == "__main__":
     dataset_path = Path.joinpath(Path.cwd(), 'news_dataset')
     args = parser.parse_args()
     if dataset_path.is_dir():
-        block_dir = Path.joinpath(Path.cwd(),"blocks")
-        #block_dir = spimi(get_files(dataset_path), args.lib, args.memory * 1024)
+        #block_dir = Path.joinpath(Path.cwd(),"blocks")
+        block_dir = spimi(get_files(dataset_path), args.lib, args.memory * 1024)
         smart_merge_blocks(block_dir, args.lib)
