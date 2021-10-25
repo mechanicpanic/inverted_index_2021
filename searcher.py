@@ -99,10 +99,19 @@ def run_query(representation):
 
 def run_search(index_path, file_path):
     pp = pprint.PrettyPrinter(indent=4)
-    stemmer = PorterStemmer()
-    nlp = spacy.load('en_core_web_sm', exclude=['ner'])
-    nlp.disable_pipe("parser")
-    nlp.enable_pipe("senter")
+
+    if 'nltk' in index_path.stem:
+        flag = True
+        stemmer = PorterStemmer()
+    elif 'spacy' in index_path.stem:
+        flag = False
+        nlp = spacy.load('en_core_web_sm', exclude=['ner'])
+        nlp.disable_pipe("parser")
+        nlp.enable_pipe("senter")
+    else:
+        print("No valid file found")
+        sys.exit()
+
     doc_ids = get_doc_ids(file_path)
     with open(index_path, 'rb') as f:
         index = pickle.load(f)
@@ -111,14 +120,13 @@ def run_search(index_path, file_path):
         if query == "0":
             sys.exit()
         else:
-            if 'nltk' in index_path.stem:
+            if flag:
                 r, tokens = get_representation_nltk(query, stemmer, index, doc_ids)
-            elif 'spacy' in index_path.stem:
-                r, tokens = get_representation_spacy(query, nlp, index, doc_ids)
             else:
-                print("No valid file found")
-                sys.exit()
+                r, tokens = get_representation_spacy(query, nlp, index, doc_ids)
+
             res = run_query(r)
+            print("Found " + str(len(res)) + " documents")
             print("Doc_ID results:")
             pp.pprint(res)
             print("The query matched documents with the following titles:")
