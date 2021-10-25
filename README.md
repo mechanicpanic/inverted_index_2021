@@ -21,4 +21,5 @@ The options are `nltk` and `spacy` respectively.
 
 ### Run search:
 `python searcher.py USED_STEMMING_METHOD`
+The used stemming method has to match the one you used for building the index. So if you obtained the `nltk_index.pkl` file, you would need to run this with as `python searcher.py nltk`.
 
