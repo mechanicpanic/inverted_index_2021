@@ -63,7 +63,6 @@ def spimi(files, iterator_name, memory=1000):
     block_dict = {}
 
     for doc_num, token in select_iterator(iterator_name, files):
-        print(doc_num)
         memory_used += sys.getsizeof(token)
         if token not in block_dict.keys():
             block_dict[token] = {}
