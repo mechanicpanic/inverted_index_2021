@@ -6,9 +6,12 @@ Unzip the `news_dataset` folder and place it into the working directory (the rep
 ## Usage
 It is recommended to create a `conda` or `venv` environment, as PRAW and Spacy have a lot of dependencies.
 
-`git clone https://github.com/mechanicpanic/inverted_index_2021`
-`cd inverted_index_2021`
-`pip install -r requirements.txt`
+``` 
+git clone https://github.com/mechanicpanic/inverted_index_2021
+cd inverted_index_2021
+pip install -r requirements.txt 
+```
+
 
 ### Scrape dataset fresh:
 `python reddit_scraper.py CLIENT_ID CLIENT_SECRET_ID APP_NAME PASSWORD USERNAME`
