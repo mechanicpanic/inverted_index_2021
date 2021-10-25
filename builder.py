@@ -22,7 +22,7 @@ def token_iterator_nltk(files):
         with open(file, 'r') as f:
             temp = json.load(f)
             p = Path(file)
-            doc_num = p.name.split("_")[1].split(".")[0]
+            doc_num = int(p.stem.split('_')[1])
             big_str = " ".join(temp['comments'])
             words = tokenizer.tokenize(big_str)
             words = [stemmer.stem(word.lower()) for word in words if word.isalpha()]
@@ -115,7 +115,7 @@ if __name__ == "__main__":
     dataset_path = Path.joinpath(Path.cwd(),'news_dataset')
     args = parser.parse_args()
     if dataset_path.is_dir():
-        block_dir = spimi(get_files(dataset_path), args.lib, args.memory)
+        block_dir = spimi(get_files(dataset_path), args.lib, args.memory * 1024)
         merge_blocks(block_dir)
 
 
