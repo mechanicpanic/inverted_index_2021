@@ -15,18 +15,24 @@ pip install -r requirements.txt
 ```
 
 
-### Scrape dataset fresh:
+### Scrape dataset fresh: (SKIP this step if you downloaded the .zip!)
 ```
 python reddit_scraper.py CLIENT_ID CLIENT_SECRET_ID APP_NAME PASSWORD USERNAME
 ```
 
 ### Build index:
+There are two choices, NLTK is x2 faster.
+1. Build index using a token stemmer from NLTK:
 ```
-python builder.py MEMORY_LIMIT(Kb) STEMMING_METHOD
+python builder.py MEMORY_LIMIT(Kb) nltk
 ```
 
-`STEMMING_METHOD` refers to whether the data will be indexed as stems obtained with Porter Stemmer or as lemmas obtained by Spacy.
-The options are `nltk` and `spacy` respectively.
+2. Build index using a token lemmatizer from spaCy:
+
+```
+python -m spacy download en_core_web_sm
+python builder.py MEMORY_LIMIT(Kb) spacy
+```
 
 ### Run search:
 ```
