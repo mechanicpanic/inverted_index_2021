@@ -71,13 +71,15 @@ def spimi(files, iterator_name, memory=1000):
         block_dict[token][doc_num] += 1
         if memory_used > memory:
             with open(Path.joinpath(blocks, str(index)), "wb") as f:
-                pickle.dump(dict(sorted(block_dict.items())), f)
+                for item in list(sorted(block_dict.items())):
+                    pickle.dump(item, f)
             index += 1
             block_dict = {}
             memory_used = 0
     if len(block_dict) > 0:
         with open(Path.joinpath(blocks, str(index)), "wb") as f:
-            pickle.dump(dict(sorted(block_dict.items())), f)
+            for item in list(sorted(block_dict.items())):
+                pickle.dump(item, f)  # dump a SINGLE term so it could be read separately
     return blocks
 
 
@@ -88,6 +90,37 @@ def merge_dicts(dict1, dict2):
         else:
             dict1[key] = value
     return dict(sorted(dict1.items()))
+
+
+def smart_merge_blocks(block_dir, lib):
+    blocks = get_files(block_dir)
+    files = [open(file, 'rb') for file in blocks]  # open all files at the same time
+    buffer = [None for f in files]
+    output = open(lib + "_index.pkl","wb")
+    while True:
+        for i, f in enumerate(files):
+            if buffer[i] is not None:
+                continue
+            try:
+                buffer[i] = pickle.load(f)  # reads a SINGLE term!
+            except (EOFError, pickle.UnpicklingError):
+                files[i].close()
+                files.pop(i)
+                buffer.pop(i)
+                continue
+        if not files:
+            break
+        min_term = min([b[0] for b in buffer if b is not None])
+        dictionary = {}
+        for i, (term, doc_dict) in enumerate([b for b in buffer if b is not None]):
+            if term == min_term:
+                dictionary = merge_dicts(dictionary, doc_dict)
+                buffer[i] = None  # clear buffer
+        pickle.dump((min_term, dictionary), output) # write SINGLE term
+
+    for f in files:
+        f.close()
+    output.close()
 
 
 def merge_blocks(block_dir, lib):
@@ -114,9 +147,11 @@ if __name__ == "__main__":
     parser.add_argument('memory', type=int,
                         help='Memory threshold')
     parser.add_argument('lib', type=str,
-                        help='Whether the text will be lemmatized with spacy (slower) or stemmed with nltk (faster)')
+                        help='Whether the text will be lemmatized with spacy (slower) '
+                             'or stemmed with nltk (faster)')
     dataset_path = Path.joinpath(Path.cwd(), 'news_dataset')
     args = parser.parse_args()
     if dataset_path.is_dir():
-        block_dir = spimi(get_files(dataset_path), args.lib, args.memory * 1024)
-        merge_blocks(block_dir,args.lib)
+        block_dir = Path.joinpath(Path.cwd(),"blocks")
+        #block_dir = spimi(get_files(dataset_path), args.lib, args.memory * 1024)
+        smart_merge_blocks(block_dir, args.lib)

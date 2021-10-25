@@ -113,8 +113,15 @@ def run_search(index_path, file_path):
         sys.exit()
 
     doc_ids = get_doc_ids(file_path)
+    temp = []
     with open(index_path, 'rb') as f:
-        index = pickle.load(f)
+        while True:
+            try:
+                temp.append(pickle.load(f))
+            except (EOFError, pickle.UnpicklingError):
+                break
+    index = dict(temp)
+
     while True:
         query = input("Enter a boolean query, 0 to exit:")
         if query == "0":
